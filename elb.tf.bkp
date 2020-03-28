@@ -1,9 +1,9 @@
-# Create a new load balancer
-resource "aws_elb" "terra-elb" {
-  name            = "terra-elb"
-  subnets         = aws_subnet.tf_public.*.id
-  security_groups = [aws_security_group.web_sg.id]
-
+resource "aws_elb" "tf_web_elb" {
+  name = "webserver-elb"
+  #availability_zones = var.azs
+  subnets         = ["${aws_subnet.tf_public.*.id}"] 
+  security_groups = ["${aws_security_group.web_sg.id}"]
+  
   listener {
     instance_port     = 80
     instance_protocol = "http"
@@ -16,20 +16,21 @@ resource "aws_elb" "terra-elb" {
     unhealthy_threshold = 2
     timeout             = 3
     target              = "HTTP:80/index.html"
-    interval            = 30
+    interval            = 10
   }
 
-  instances                   = aws_instance.web.*.id
+#  instances                   = ["aws_instance.web.*.id"]
   cross_zone_load_balancing   = true
   idle_timeout                = 100
   connection_draining         = true
   connection_draining_timeout = 300
 
   tags = {
-    Name = "terraform-elb"
+    Name = "tf-webserver-elb"
   }
 }
 
 output "elb-dns-name" {
-  value = "${aws_elb.terra-elb.dns_name}"
+  value = aws_elb.tf_web_elb.dns_name
 }
+
